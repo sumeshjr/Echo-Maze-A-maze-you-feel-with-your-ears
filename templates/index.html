@@ -1,0 +1,386 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🌟 Echo Maze Adventure 🌟</title>
+    <style>
+        body {
+            font-family: 'Comic Sans MS', cursive, sans-serif;
+            text-align: center;
+            background-color: #f0f8ff;
+            margin: 0;
+            padding: 20px;
+            background-image: url('{{ url_for("static", filename="images/background.jpg") }}');
+            background-size: cover;
+        }
+        h1 {
+            color: #ff6b6b;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.2);
+            background-color: rgba(255, 255, 255, 0.7);
+            padding: 10px;
+            border-radius: 20px;
+            display: inline-block;
+        }
+        .maze {
+            display: inline-block;
+            margin: 20px auto;
+            background-color: rgba(255, 255, 255, 0.8);
+            padding: 10px;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+        }
+        .row {
+            display: flex;
+        }
+        .cell {
+            width: 60px;
+            height: 60px;
+            border: 2px solid #ddd;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            transition: all 0.3s;
+        }
+        .wall {
+            background-color: #6d6875;
+        }
+        .path {
+            background-color: #ffd166;
+        }
+        .player {
+            background-color: #06d6a0;
+            transform: scale(1.1);
+        }
+        .goal {
+            background-color: #ef476f;
+            animation: pulse 1.5s infinite;
+        }
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+            100% { transform: scale(1); }
+        }
+        @keyframes celebrate {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.1); background-color: #ffff00; }
+            100% { transform: scale(1); }
+        }
+        @keyframes newMaze {
+            0% { opacity: 0; transform: rotate(0deg); }
+            100% { opacity: 1; transform: rotate(360deg); }
+        }
+        .celebrate {
+            animation: celebrate 1s ease-in-out;
+        }
+        .new-maze {
+            animation: newMaze 1.5s ease-out;
+        }
+        #status {
+            font-size: 18px;
+            color: #5e60ce;
+            margin: 10px;
+            min-height: 24px;
+            background-color: rgba(255, 255, 255, 0.7);
+            padding: 8px;
+            border-radius: 10px;
+        }
+        #attempts {
+            color: #ef476f;
+            font-weight: bold;
+            background-color: rgba(255, 255, 255, 0.7);
+            padding: 5px;
+            border-radius: 10px;
+            display: inline-block;
+        }
+        #music-control {
+            margin: 15px;
+            background-color: rgba(255, 255, 255, 0.7);
+            padding: 10px;
+            border-radius: 20px;
+        }
+        button {
+            background-color: #4cc9f0;
+            border: none;
+            padding: 8px 16px;
+            margin: 5px;
+            border-radius: 20px;
+            font-size: 14px;
+            cursor: pointer;
+            transition: all 0.3s;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+        }
+        button:hover {
+            background-color: #4895ef;
+            transform: scale(1.05);
+        }
+        .confetti {
+            position: absolute;
+            width: 10px;
+            height: 10px;
+            background-color: #f00;
+            border-radius: 50%;
+            pointer-events: none;
+        }
+    </style>
+</head>
+<body>
+    <h1>🌟 Echo Maze Adventure 🌟</h1>
+    <p style="background-color: rgba(255, 255, 255, 0.7); display: inline-block; padding: 5px 15px; border-radius: 20px;">
+        Use <strong>arrow keys</strong> or <strong>WASD</strong> to move!
+    </p>
+    
+    <div id="music-control">
+        <button id="toggleMusic">🎵 Toggle Music</button>
+        <button id="toggleSound">🔊 Toggle Sound</button>
+        <button id="helpBtn">❓ Help</button>
+    </div>
+    
+    <div id="status">Ready to play! Choose a direction!</div>
+    <div id="attempts">💖 Lives left: 3</div>
+    
+    <div class="maze" id="mazeContainer"></div>
+
+    <!-- Sound Effects -->
+    <audio id="backgroundMusic" loop src="{{ url_for('static', filename='sounds/background.mp3') }}"></audio>
+    <audio id="keyPressSound" src="{{ url_for('static', filename='sounds/key_press.mp3') }}"></audio>
+    <audio id="move_up" src="{{ url_for('static', filename='sounds/move_up.mp3') }}"></audio>
+    <audio id="move_down" src="{{ url_for('static', filename='sounds/move_down.mp3') }}"></audio>
+    <audio id="move_left" src="{{ url_for('static', filename='sounds/move_left.mp3') }}"></audio>
+    <audio id="move_right" src="{{ url_for('static', filename='sounds/move_right.mp3') }}"></audio>
+    <audio id="correct1" src="{{ url_for('static', filename='sounds/correct1.mp3') }}"></audio>
+    <audio id="correct2" src="{{ url_for('static', filename='sounds/correct2.mp3') }}"></audio>
+    <audio id="wrong1" src="{{ url_for('static', filename='sounds/wrong1.mp3') }}"></audio>
+    <audio id="wrong2" src="{{ url_for('static', filename='sounds/wrong2.mp3') }}"></audio>
+    <audio id="wrong3" src="{{ url_for('static', filename='sounds/wrong3.mp3') }}"></audio>
+    <audio id="win1" src="{{ url_for('static', filename='sounds/win1.mp3') }}"></audio>
+    <audio id="win2" src="{{ url_for('static', filename='sounds/win2.mp3') }}"></audio>
+    <audio id="win3" src="{{ url_for('static', filename='sounds/win3.mp3') }}"></audio>
+    <audio id="game_over" src="{{ url_for('static', filename='sounds/game_over.mp3') }}"></audio>
+
+    <script>
+        // Game state
+        const mazeState = {
+            maze: {{ maze|tojson }},
+            player: {{ player|tojson }},
+            goal: {{ goal|tojson }},
+            remainingAttempts: 3
+        };
+
+        // Audio elements
+        const backgroundMusic = document.getElementById('backgroundMusic');
+        const keyPressSound = document.getElementById('keyPressSound');
+        const winSounds = [
+            document.getElementById('win1'),
+            document.getElementById('win2'), 
+            document.getElementById('win3')
+        ];
+        let soundEnabled = true;
+        let musicEnabled = true;
+
+        // DOM elements
+        const mazeContainer = document.getElementById('mazeContainer');
+        const statusElement = document.getElementById('status');
+        const attemptsElement = document.getElementById('attempts');
+        const toggleMusicBtn = document.getElementById('toggleMusic');
+        const toggleSoundBtn = document.getElementById('toggleSound');
+        const helpBtn = document.getElementById('helpBtn');
+
+        // Initialize Web Speech API
+        const speechSynth = window.speechSynthesis;
+        
+        function speak(text) {
+            if (!speechSynth || !soundEnabled) return;
+            
+            const utterance = new SpeechSynthesisUtterance(text);
+            utterance.rate = 0.9;
+            utterance.pitch = 1.1;
+            speechSynth.speak(utterance);
+        }
+
+        // Play sound effect
+        function playSound(soundId) {
+            if (!soundEnabled) return;
+            
+            const sound = document.getElementById(soundId);
+            if (sound) {
+                sound.currentTime = 0;
+                sound.play().catch(e => console.log("Audio error:", e));
+            }
+        }
+
+        // Create confetti effect
+        function createConfetti() {
+            const colors = ['#f00', '#0f0', '#00f', '#ff0', '#f0f', '#0ff'];
+            for (let i = 0; i < 50; i++) {
+                const confetti = document.createElement('div');
+                confetti.className = 'confetti';
+                confetti.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
+                confetti.style.left = Math.random() * window.innerWidth + 'px';
+                confetti.style.top = -10 + 'px';
+                confetti.style.width = Math.random() * 10 + 5 + 'px';
+                confetti.style.height = confetti.style.width;
+                document.body.appendChild(confetti);
+                
+                const animation = confetti.animate([
+                    { top: -10 + 'px', left: confetti.style.left },
+                    { top: window.innerHeight + 'px', left: parseFloat(confetti.style.left) + (Math.random() * 200 - 100) + 'px' }
+                ], {
+                    duration: Math.random() * 3000 + 2000,
+                    easing: 'cubic-bezier(0.1,0.8,0.9,1)'
+                });
+                
+                animation.onfinish = () => confetti.remove();
+            }
+        }
+
+        // Toggle music
+        toggleMusicBtn.addEventListener('click', () => {
+            musicEnabled = !musicEnabled;
+            if (musicEnabled) {
+                backgroundMusic.play();
+                toggleMusicBtn.textContent = "🎵 Music ON";
+            } else {
+                backgroundMusic.pause();
+                toggleMusicBtn.textContent = "🔇 Music OFF";
+            }
+        });
+
+        // Toggle sound effects
+        toggleSoundBtn.addEventListener('click', () => {
+            soundEnabled = !soundEnabled;
+            toggleSoundBtn.textContent = soundEnabled ? "🔊 Sound ON" : "🔇 Sound OFF";
+        });
+
+        // Help button
+        helpBtn.addEventListener('click', () => {
+            speak("Welcome to Echo Maze Adventure! Use arrow keys or W A S D to move. Reach the trophy to win. Avoid walls and don't go outside the maze!");
+            statusElement.textContent = "Use arrow keys or WASD. Reach the trophy 🏆 to win!";
+        });
+
+        // Render maze
+        function renderMaze() {
+            mazeContainer.innerHTML = '';
+            
+            for (let i = 0; i < mazeState.maze.length; i++) {
+                const row = document.createElement('div');
+                row.className = 'row';
+                
+                for (let j = 0; j < mazeState.maze[i].length; j++) {
+                    const cell = document.createElement('div');
+                    cell.className = 'cell';
+                    
+                    if (i === mazeState.player[0] && j === mazeState.player[1]) {
+                        cell.classList.add('player');
+                        cell.textContent = '🧒';
+                    } else if (i === mazeState.goal[0] && j === mazeState.goal[1]) {
+                        cell.classList.add('goal');
+                        cell.textContent = '🏆';
+                    } else if (mazeState.maze[i][j] === 1) {
+                        cell.classList.add('wall');
+                    } else {
+                        cell.classList.add('path');
+                    }
+                    
+                    row.appendChild(cell);
+                }
+                mazeContainer.appendChild(row);
+            }
+        }
+
+        // Handle maze completion with celebration
+        function handleMazeCompletion(data) {
+            // Play random win sound
+            const winSound = winSounds[Math.floor(Math.random() * winSounds.length)];
+            winSound.currentTime = 0;
+            winSound.play();
+            
+            // Visual celebration
+            createConfetti();
+            mazeContainer.classList.add('celebrate');
+            setTimeout(() => {
+                mazeContainer.classList.remove('celebrate');
+            }, 1000);
+            
+            // Update game state
+            mazeState.maze = data.maze;
+            mazeState.player = data.player;
+            mazeState.goal = data.goal;
+            mazeState.remainingAttempts = 3;
+            
+            // Show new maze with animation
+            setTimeout(() => {
+                renderMaze();
+                mazeContainer.classList.add('new-maze');
+                setTimeout(() => {
+                    mazeContainer.classList.remove('new-maze');
+                }, 1500);
+            }, 1000);
+            
+            // Update UI
+            statusElement.textContent = data.message;
+            attemptsElement.textContent = `💖 Lives left: ${mazeState.remainingAttempts}`;
+            speak(data.message);
+        }
+
+        // Handle keyboard input
+        document.addEventListener('keydown', (e) => {
+            let direction = '';
+            switch (e.key) {
+                case 'ArrowUp': case 'w': case 'W': direction = 'up'; break;
+                case 'ArrowDown': case 's': case 'S': direction = 'down'; break;
+                case 'ArrowLeft': case 'a': case 'A': direction = 'left'; break;
+                case 'ArrowRight': case 'd': case 'D': direction = 'right'; break;
+                default: return;
+            }
+            
+            // Play key press sound
+            playSound('keyPressSound');
+            
+            fetch('/move', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ direction })
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.result === 'goal') {
+                    handleMazeCompletion(data);
+                } else {
+                    statusElement.textContent = data.message;
+                    speak(data.message);
+                    
+                    if (data.sound) {
+                        playSound(data.sound);
+                    }
+                    
+                    if (data.result === 'move') {
+                        mazeState.player = data.player;
+                    } else if (data.result === 'wall' || data.result === 'invalid') {
+                        mazeState.remainingAttempts = data.remaining_attempts;
+                    }
+                    
+                    if (data.result === 'game_over') {
+                        mazeContainer.style.opacity = '0.5';
+                        createConfetti(); // Show some sad confetti
+                    }
+                    
+                    attemptsElement.textContent = `💖 Lives left: ${mazeState.remainingAttempts}`;
+                    renderMaze();
+                }
+            });
+        });
+
+        // Start background music
+        backgroundMusic.volume = 0.3;
+        document.addEventListener('click', () => {
+            backgroundMusic.play().catch(e => console.log("Audio play prevented"));
+        }, { once: true });
+
+        // Initial render
+        renderMaze();
+        speak("Welcome to Echo Maze Adventure! Use arrow keys to navigate. Press the help button for instructions.");
+    </script>
+</body>
+</html>
