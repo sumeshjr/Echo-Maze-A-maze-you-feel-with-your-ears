@@ -8,16 +8,16 @@
         body {
             font-family: 'Comic Sans MS', cursive, sans-serif;
             text-align: center;
-            background-color: #f0f8ff;
+            /* background-color: #f0f8ff; */
             margin: 0;
             padding: 20px;
-            background-image: url('{{ url_for("static", filename="images/background.jpg") }}');
+            background-image: url('{{ url_for("static", filename="images/new.jpg") }}');
             background-size: cover;
         }
         h1 {
             color: #ff6b6b;
             text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.2);
-            background-color: rgba(255, 255, 255, 0.7);
+            /* background-color: rgba(255, 255, 255, 0.7); */
             padding: 10px;
             border-radius: 20px;
             display: inline-block;
@@ -25,7 +25,7 @@
         .maze {
             display: inline-block;
             margin: 20px auto;
-            background-color: rgba(255, 255, 255, 0.8);
+            /* background-color: rgba(255, 255, 255, 0.8); */
             padding: 10px;
             border-radius: 10px;
             box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
@@ -82,21 +82,21 @@
             color: #5e60ce;
             margin: 10px;
             min-height: 24px;
-            background-color: rgba(255, 255, 255, 0.7);
+            /* background-color: rgba(255, 255, 255, 0.7); */
             padding: 8px;
             border-radius: 10px;
         }
         #attempts {
             color: #ef476f;
             font-weight: bold;
-            background-color: rgba(255, 255, 255, 0.7);
+            /* background-color: rgba(255, 255, 255, 0.7); */
             padding: 5px;
             border-radius: 10px;
             display: inline-block;
         }
         #music-control {
             margin: 15px;
-            background-color: rgba(255, 255, 255, 0.7);
+            /* background-color: rgba(255, 255, 255, 0.7); */
             padding: 10px;
             border-radius: 20px;
         }
@@ -127,13 +127,9 @@
 </head>
 <body>
     <h1>🌟 Echo Maze Adventure 🌟</h1>
-    <p style="background-color: rgba(255, 255, 255, 0.7); display: inline-block; padding: 5px 15px; border-radius: 20px;">
-        Use <strong>arrow keys</strong> or <strong>WASD</strong> to move!
-    </p>
     
     <div id="music-control">
         <button id="toggleMusic">🎵 Toggle Music</button>
-        <button id="toggleSound">🔊 Toggle Sound</button>
         <button id="helpBtn">❓ Help</button>
     </div>
     
@@ -143,21 +139,11 @@
     <div class="maze" id="mazeContainer"></div>
 
     <!-- Sound Effects -->
-    <audio id="backgroundMusic" loop src="{{ url_for('static', filename='sounds/background.mp3') }}"></audio>
-    <audio id="keyPressSound" src="{{ url_for('static', filename='sounds/key_press.mp3') }}"></audio>
-    <audio id="move_up" src="{{ url_for('static', filename='sounds/move_up.mp3') }}"></audio>
-    <audio id="move_down" src="{{ url_for('static', filename='sounds/move_down.mp3') }}"></audio>
-    <audio id="move_left" src="{{ url_for('static', filename='sounds/move_left.mp3') }}"></audio>
-    <audio id="move_right" src="{{ url_for('static', filename='sounds/move_right.mp3') }}"></audio>
-    <audio id="correct1" src="{{ url_for('static', filename='sounds/correct1.mp3') }}"></audio>
-    <audio id="correct2" src="{{ url_for('static', filename='sounds/correct2.mp3') }}"></audio>
-    <audio id="wrong1" src="{{ url_for('static', filename='sounds/wrong1.mp3') }}"></audio>
-    <audio id="wrong2" src="{{ url_for('static', filename='sounds/wrong2.mp3') }}"></audio>
-    <audio id="wrong3" src="{{ url_for('static', filename='sounds/wrong3.mp3') }}"></audio>
-    <audio id="win1" src="{{ url_for('static', filename='sounds/win1.mp3') }}"></audio>
-    <audio id="win2" src="{{ url_for('static', filename='sounds/win2.mp3') }}"></audio>
-    <audio id="win3" src="{{ url_for('static', filename='sounds/win3.mp3') }}"></audio>
-    <audio id="game_over" src="{{ url_for('static', filename='sounds/game_over.mp3') }}"></audio>
+    <audio id="backgroundMusic" loop autoplay muted src="{{ url_for('static', filename='sounds/background.mp3') }}"></audio>
+    <audio id="keyPressSound" src="{{ url_for('static', filename='sounds/keyPressSound.wav') }}"></audio>
+    <audio id="wrong1" src="{{ url_for('static', filename='sounds/wrong1.wav') }}"></audio>
+    <audio id="winSound" src="{{ url_for('static', filename='sounds/winSound.wav') }}"></audio>
+    <audio id="gameFailure" src="{{ url_for('static', filename='sounds/gameFailure.wav') }}"></audio>
 
     <script>
         // Game state
@@ -171,11 +157,6 @@
         // Audio elements
         const backgroundMusic = document.getElementById('backgroundMusic');
         const keyPressSound = document.getElementById('keyPressSound');
-        const winSounds = [
-            document.getElementById('win1'),
-            document.getElementById('win2'), 
-            document.getElementById('win3')
-        ];
         let soundEnabled = true;
         let musicEnabled = true;
 
@@ -184,8 +165,7 @@
         const statusElement = document.getElementById('status');
         const attemptsElement = document.getElementById('attempts');
         const toggleMusicBtn = document.getElementById('toggleMusic');
-        const toggleSoundBtn = document.getElementById('toggleSound');
-        const helpBtn = document.getElementById('helpBtn');
+                const helpBtn = document.getElementById('helpBtn');
 
         // Initialize Web Speech API
         const speechSynth = window.speechSynthesis;
@@ -194,7 +174,7 @@
             if (!speechSynth || !soundEnabled) return;
             
             const utterance = new SpeechSynthesisUtterance(text);
-            utterance.rate = 0.9;
+            utterance.rate = 1.5;
             utterance.pitch = 1.1;
             speechSynth.speak(utterance);
         }
@@ -247,11 +227,6 @@
             }
         });
 
-        // Toggle sound effects
-        toggleSoundBtn.addEventListener('click', () => {
-            soundEnabled = !soundEnabled;
-            toggleSoundBtn.textContent = soundEnabled ? "🔊 Sound ON" : "🔇 Sound OFF";
-        });
 
         // Help button
         helpBtn.addEventListener('click', () => {
@@ -262,7 +237,7 @@
         // Render maze
         function renderMaze() {
             mazeContainer.innerHTML = '';
-            
+
             for (let i = 0; i < mazeState.maze.length; i++) {
                 const row = document.createElement('div');
                 row.className = 'row';
@@ -292,9 +267,7 @@
         // Handle maze completion with celebration
         function handleMazeCompletion(data) {
             // Play random win sound
-            const winSound = winSounds[Math.floor(Math.random() * winSounds.length)];
-            winSound.currentTime = 0;
-            winSound.play();
+            playSound("winSound")
             
             // Visual celebration
             createConfetti();
@@ -324,8 +297,27 @@
             speak(data.message);
         }
 
+        // Initialize audio and welcome message
+        function initializeAudio() {
+             // Play welcome message immediately
+            speak("Welcome to Echo Maze Adventure! Use arrow keys or W A S D to move. Reach the trophy to win. Avoid walls and don't go outside the maze!");  
+        }
+
+        // Set up interaction handler to properly start audio
+        function handleFirstInteraction() {
+            initializeAudio()
+            // Unmute music and ensure it's playing
+            backgroundMusic.muted = false;
+            backgroundMusic.sound = 0.3;
+            backgroundMusic.play().catch(e => console.log("Audio play error:", e));
+
+            // Remove this event listener after first interaction
+            document.removeEventListener('keydown', handleFirstInteraction);
+            document.removeEventListener('click', handleFirstInteraction);
+        }
+
         // Handle keyboard input
-        document.addEventListener('keydown', (e) => {
+        function handleKeyDown(e) {
             let direction = '';
             switch (e.key) {
                 case 'ArrowUp': case 'w': case 'W': direction = 'up'; break;
@@ -359,28 +351,33 @@
                         mazeState.player = data.player;
                     } else if (data.result === 'wall' || data.result === 'invalid') {
                         mazeState.remainingAttempts = data.remaining_attempts;
+                            // Play key press sound
+                            playSound('wrong1')
+                        
                     }
                     
                     if (data.result === 'game_over') {
+                        mazeState.remainingAttempts = 0;
                         mazeContainer.style.opacity = '0.5';
-                        createConfetti(); // Show some sad confetti
+                        playSound("gameFailure")
+                        createConfetti(); 
                     }
                     
                     attemptsElement.textContent = `💖 Lives left: ${mazeState.remainingAttempts}`;
                     renderMaze();
                 }
             });
-        });
+        }
 
-        // Start background music
-        backgroundMusic.volume = 0.3;
-        document.addEventListener('click', () => {
-            backgroundMusic.play().catch(e => console.log("Audio play prevented"));
-        }, { once: true });
+        // Set up event listeners for first interaction
+        document.addEventListener('keydown', handleFirstInteraction);
+        document.addEventListener('click', handleFirstInteraction);
 
-        // Initial render
+        // Set up game keyboard controls
+        document.addEventListener('keydown', handleKeyDown);
+
         renderMaze();
-        speak("Welcome to Echo Maze Adventure! Use arrow keys to navigate. Press the help button for instructions.");
+        initializeAudio();
     </script>
 </body>
 </html>
