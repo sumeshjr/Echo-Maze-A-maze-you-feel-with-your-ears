@@ -9,5 +9,4 @@ MarkupSafe==3.0.2
 pygame==2.6.1
 pypiwin32==223
 pyttsx3==2.99
-pywin32==311
 Werkzeug==3.1.3
